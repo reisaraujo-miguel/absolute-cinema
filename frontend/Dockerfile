@@ -1,22 +1,29 @@
-FROM node:20-alpine AS development-dependencies-env
-COPY . /app
+FROM oven/bun:1-alpine AS base
 WORKDIR /app
-RUN npm ci
 
-FROM node:20-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
-WORKDIR /app
-RUN npm ci --omit=dev
+# Install dependencies
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
 
-FROM node:20-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+# Build environment
+FROM oven/bun:1-alpine AS build-env
 WORKDIR /app
-RUN npm run build
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-FROM node:20-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
+COPY . .
+RUN bun run build
+
+# Production environment
+FROM oven/bun:1-alpine AS production
 WORKDIR /app
-CMD ["npm", "run", "start"]
+
+# Copy only what's needed for production
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
+
+COPY --from=build-env /app/build ./build
+
+EXPOSE 8080
+
+CMD ["bun", "run", "start"]
