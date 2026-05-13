@@ -1,0 +1,68 @@
+services:
+  frontend:
+    build: ./frontend/
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      TZ: "America/Sao_Paulo"
+      VITE_API_ENDPOINT: "http://backend:5000"
+    networks:
+      - cinema-network
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend/
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    networks:
+      - cinema-network
+    environment:
+      TZ: "America/Sao_Paulo"
+      TMDB_API_KEY: "${TMDB_API_KEY:?TMDB_API_KEY must be set}"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_USER: "admin"
+      DB_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD must be set}"
+      DB_NAME: "absolute_cinema"
+    depends_on:
+      database:
+        condition: service_started
+
+  # PostgreSQL Database
+  database:
+    build: ./database/
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      TZ: "America/Sao_Paulo"
+      POSTGRES_USER: "admin"
+      POSTGRES_DB: "absolute_cinema"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD must be set}"
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8"
+    volumes:
+      - db-vol:/var/lib/postgresql
+    networks:
+      - cinema-network
+
+  # Redis for cache & session management
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    environment:
+      TZ: "America/Sao_Paulo"
+    volumes:
+      - redis-vol:/data
+    networks:
+      - cinema-network
+
+networks:
+  cinema-network:
+    driver: bridge
+
+volumes:
+  db-vol:
+  redis-vol:
