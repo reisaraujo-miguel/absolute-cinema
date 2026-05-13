@@ -51,8 +51,7 @@ This will build and start all four services:
 | Frontend      | 3000           | http://localhost:3000       |
 | Backend       | 5000           | http://localhost:5000       |
 | Database      | 5432           | localhost:5432 (restricted) |
-| Redis         | ------- SEARCH |
-| Internal only |
+| Redis         | Internal only  | Internal only               |
 
 ### 4. Access the application
 
