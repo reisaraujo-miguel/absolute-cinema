@@ -10,10 +10,10 @@ const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT;
 
 export async function fetchMovies(
   data: z.infer<typeof searchFormSchema>,
-): Promise<z.infer<typeof searchResultSchema>["results"] | null> {
+): Promise<z.infer<typeof searchResultSchema> | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/search/movies?query=${data.Query}`,
+      `${API_BASE_URL}/search/movies?query=${data.Query}&page=${data.Page}`,
       {
         method: "GET",
         headers: {
@@ -24,7 +24,7 @@ export async function fetchMovies(
     if (response.ok) {
       const parsed = searchResultSchema.safeParse(await response.json());
       if (parsed.success) {
-        return parsed.data.results;
+        return parsed.data;
       } else {
         console.error(parsed.error);
       }

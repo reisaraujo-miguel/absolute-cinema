@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const searchFormSchema = z.object({
   Query: z.string().min(1, "O termo de pesquisa é obrigatório"),
+  Page: z.int(),
 });
 
 export const searchResultSchema = z.object({
