@@ -48,7 +48,7 @@ This will build and start all four services:
 
 | Service       | Port           | URL                         |
 | ------------- | -------------- | --------------------------- |
-| Frontend      | 8080           | http://localhost:8080       |
+| Frontend      | 3000           | http://localhost:3000       |
 | Backend       | 5000           | http://localhost:5000       |
 | Database      | 5432           | localhost:5432 (restricted) |
 | Redis         | ------- SEARCH |

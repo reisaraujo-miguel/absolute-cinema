@@ -1,11 +1,4 @@
-FROM oven/bun:1-alpine AS base
-WORKDIR /app
-
-# Install dependencies
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
-
-# Build environment
+# Build environment - uses Bun for fast installs and builds
 FROM oven/bun:1-alpine AS build-env
 WORKDIR /app
 COPY package.json bun.lock ./
@@ -14,16 +7,17 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-# Production environment
-FROM oven/bun:1-alpine AS production
+# Production environment - uses Node.js because @react-router/serve
+# depends on Node.js APIs (renderToPipeableStream, etc.) not available in Bun
+FROM node:22-alpine AS production
 WORKDIR /app
 
 # Copy only what's needed for production
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+COPY package.json ./
+RUN npm install --omit=dev
 
 COPY --from=build-env /app/build ./build
 
-EXPOSE 8080
+EXPOSE 3000
 
-CMD ["bun", "run", "start"]
+CMD ["npm", "run", "start"]
