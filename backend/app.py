@@ -67,14 +67,14 @@ def search_movies():
     movies = [
         {
             "id": m["id"],
-            "title": m["title"],
-            "release_date": m.get("release_date"),
-            "overview": m.get("overview"),
-            "vote_average": m.get("vote_average"),
+            "title": m.get("title", ""),
+            "release_date": m.get("release_date", ""),
+            "overview": m.get("overview", ""),
+            "vote_average": m.get("vote_average", 0.0),
             "poster_url": (
                 f"https://image.tmdb.org/t/p/w500{m['poster_path']}"
                 if m.get("poster_path")
-                else None
+                else ""
             ),
         }
         for m in data.get("results", [])
@@ -116,17 +116,17 @@ def get_movie(movie_id: int):
     return jsonify(
         {
             "id": data["id"],
-            "title": data["title"],
-            "tagline": data.get("tagline"),
-            "overview": data.get("overview"),
-            "release_date": data.get("release_date"),
-            "runtime": data.get("runtime"),
-            "vote_average": data.get("vote_average"),
+            "title": data.get("title", ""),
+            "tagline": data.get("tagline", ""),
+            "overview": data.get("overview", ""),
+            "release_date": data.get("release_date", ""),
+            "runtime": data.get("runtime", 0),
+            "vote_average": data.get("vote_average", 0.0),
             "genres": [g["name"] for g in data.get("genres", [])],
             "poster_url": (
                 f"https://image.tmdb.org/t/p/w500{data['poster_path']}"
                 if data.get("poster_path")
-                else None
+                else ""
             ),
         }
     )

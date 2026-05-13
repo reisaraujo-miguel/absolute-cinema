@@ -11,7 +11,7 @@ export function Poster({ posterUrl, title, releaseDate }: any) {
   return (
     <Card>
       <CardHeader>
-        {posterUrl === null ? (
+        {posterUrl === "" ? (
           <div className="relative z-20 aspect-video w-full object-cover brightness-40">
             <ImageOff className="size-full"></ImageOff>
           </div>

@@ -3,6 +3,8 @@ import { z } from "zod";
 import {
   searchFormSchema,
   searchResultSchema,
+  fetchInfoSchema,
+  fetchInfoResultSchema,
   apiErrorSchema,
 } from "~/schemas/movies";
 
@@ -23,6 +25,40 @@ export async function fetchMovies(
     );
     if (response.ok) {
       const parsed = searchResultSchema.safeParse(await response.json());
+      if (parsed.success) {
+        return parsed.data;
+      } else {
+        console.error(parsed.error);
+      }
+    } else {
+      try {
+        const parsed = apiErrorSchema.safeParse(await response.json());
+        if (parsed.success) {
+          console.error("Erro:", parsed.data.error);
+        }
+      } catch {
+        console.error("Erro:", "Erro desconhecido");
+      }
+    }
+  } catch (error) {
+    console.error("Erro:", error);
+  }
+
+  return null;
+}
+
+export async function fetchMovieInfo(
+  data: z.infer<typeof fetchInfoSchema>,
+): Promise<z.infer<typeof fetchInfoResultSchema> | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/movies/${data.MovieId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (response.ok) {
+      const parsed = fetchInfoResultSchema.safeParse(await response.json());
       if (parsed.success) {
         return parsed.data;
       } else {

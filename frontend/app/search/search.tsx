@@ -6,22 +6,15 @@ import { useForm } from "react-hook-form";
 
 import { Search } from "lucide-react";
 import AbsoluteCinemaImg from "./absolute-cinema.jpg";
+import { Poster } from "~/components/poster";
+
+import { MovieModal } from "~/components/modal";
 
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "~/components/ui/input-group";
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "~/components/ui/pagination";
 
 import { Spinner } from "~/components/ui/spinner";
 
@@ -32,7 +25,6 @@ import {
 } from "~/schemas/movies";
 
 import { fetchMovies } from "~/lib/movies";
-import { Poster } from "~/components/poster";
 
 export function SearchPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +36,8 @@ export function SearchPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [query, setQuery] = useState("");
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
 
   async function handleSearch(data: z.infer<typeof searchFormSchema>) {
     setIsLoading(true);
@@ -131,12 +125,16 @@ export function SearchPage() {
         <>
           <div className="grid grid-cols-3 gap-4 m-8">
             {movies.map((movie) => (
-              <Poster
+              <button
                 key={movie.id}
-                posterUrl={movie.poster_url}
-                title={movie.title}
-                releaseDate={movie.release_date}
-              ></Poster>
+                onClick={() => setSelectedMovieId(movie.id)}
+              >
+                <Poster
+                  posterUrl={movie.poster_url}
+                  title={movie.title}
+                  releaseDate={movie.release_date}
+                ></Poster>
+              </button>
             ))}
           </div>
           <div ref={sentinelRef} className="h-8" />
@@ -146,6 +144,12 @@ export function SearchPage() {
             </div>
           )}
         </>
+      )}
+      {selectedMovieId !== null && (
+        <MovieModal
+          movieId={selectedMovieId}
+          onClose={() => setSelectedMovieId(null)}
+        />
       )}
     </>
   );
