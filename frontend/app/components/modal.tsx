@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Spinner } from "~/components/ui/spinner";
+import { Input } from "./ui/input";
 
-import { ImageOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { CircleX } from "lucide-react";
+import { sendVoteSchema } from "~/schemas/movies";
+
+import { ImageOff, CircleX, CircleCheck } from "lucide-react";
+
+import { sendVote } from "~/lib/movies";
 
 interface MovieModalProps {
   movieId: number;
@@ -22,6 +28,7 @@ export function MovieModal({ movieId, onClose }: MovieModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] =
     useState<z.infer<typeof fetchInfoResultSchema>>(Object);
+  const [voteSuccess, setVoteSuccess] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -37,9 +44,25 @@ export function MovieModal({ movieId, onClose }: MovieModalProps) {
     fetchData();
   }, [movieId]);
 
+  const form = useForm({
+    resolver: zodResolver(sendVoteSchema),
+    defaultValues: {
+      MovieId: movieId,
+      Rating: 0.0,
+    },
+  });
+
+  async function handleVote(formData: z.infer<typeof sendVoteSchema>) {
+    const success = await sendVote(formData);
+    if (success) {
+      setVoteSuccess(true);
+      setData((prev) => ({ ...prev, user_vote: formData.Rating }));
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-3xl max-h-[80vh]  overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[80vh]  overflow-y-auto">
         {isLoading ? (
           <div className="flex justify-center m-8">
             <Spinner className="size-8" />
@@ -66,6 +89,28 @@ export function MovieModal({ movieId, onClose }: MovieModalProps) {
                   />
                 )}
                 <div className="grid grid-cols-2 content-start gap-1">
+                  <strong>Sua avaliação</strong>
+                  <div>
+                    {data.user_vote !== -1.0 ? data.user_vote : "Não avaliado"}
+                  </div>
+                  <strong>Nova avaliação</strong>
+                  <form
+                    onSubmit={form.handleSubmit(handleVote)}
+                    className="flex gap-2 mb-8 "
+                  >
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.1"
+                      {...form.register("Rating")}
+                      required
+                    />
+                    <Button type="submit">Enviar</Button>
+                    {voteSuccess && (
+                      <CircleCheck className="size-8 text-green-500 self-center" />
+                    )}
+                  </form>
                   <strong>Gêneros:</strong>
                   <div>
                     {data.genres.length !== 0
@@ -80,7 +125,7 @@ export function MovieModal({ movieId, onClose }: MovieModalProps) {
                   <div>
                     {data.runtime !== 0 ? `${data.runtime} minutos` : "N/A"}
                   </div>
-                  <strong>Avaliação:</strong>
+                  <strong>Avaliação geral:</strong>
                   <div>
                     {data.vote_average !== 0.0
                       ? `${data.vote_average}/10`
