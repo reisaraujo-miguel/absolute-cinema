@@ -5,6 +5,11 @@ export const searchFormSchema = z.object({
   Page: z.int(),
 });
 
+export const sendVoteSchema = z.object({
+  MovieId: z.int(),
+  Rating: z.coerce.number().min(0).max(10),
+});
+
 export const searchResultSchema = z.object({
   page: z.int(),
   results: z.array(
@@ -33,10 +38,20 @@ export const fetchInfoResultSchema = z.object({
   release_date: z.string(),
   runtime: z.int(),
   vote_average: z.float64(),
+  user_vote: z.float64(),
   genres: z.array(z.string()),
   poster_url: z.string(),
 });
 
 export const apiErrorSchema = z.object({
   error: z.string(),
+});
+
+export const ratedMovieSchema = z.object({
+  id: z.int(),
+  rating: z.float64(),
+});
+
+export const ratedMoviesResultSchema = z.object({
+  results: z.array(ratedMovieSchema),
 });
