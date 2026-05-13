@@ -142,7 +142,7 @@ def get_movie(movie_id: int):
             "release_date": data.get("release_date", ""),
             "runtime": data.get("runtime", 0),
             "vote_average": data.get("vote_average", 0.0),
-            "user_vote": user_rating[0] if user_rating[0] is not None else -1.0,
+            "user_vote": user_rating[0] if user_rating is not None else -1.0,
             "genres": [g["name"] for g in data.get("genres", [])],
             "poster_url": (
                 f"https://image.tmdb.org/t/p/w500{data['poster_path']}"
