@@ -13,81 +13,48 @@ import {
   InputGroupInput,
 } from "~/components/ui/input-group";
 
-const formSchema = z.object({
-  Query: z.string().min(1, "O termo de pesquisa é obrigatório"),
-});
+import { Spinner } from "~/components/ui/spinner";
 
-const resultSchema = z.object({
-  page: z.int(),
-  results: z.array(
-    z.object({
-      id: z.int(),
-      overview: z.any(),
-      poster_url: z.any(),
-      release_date: z.any(),
-      title: z.any(),
-      vote_average: z.any(),
-    }),
-  ),
-  total_pages: z.int(),
-  total_results: z.int(),
-});
+import {
+  searchFormSchema,
+  searchResultSchema,
+  apiErrorSchema,
+} from "~/schemas/movies";
 
-const apiErrorSchema = z.object({
-  error: z.string(),
-});
-
-const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT;
+import { fetchMovies } from "~/lib/movies";
+import { Poster } from "~/components/poster";
 
 export function SearchPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [movies, setMovies] = useState<
+    z.infer<typeof searchResultSchema>["results"]
+  >([]);
+
+  async function handleSearch(data: z.infer<typeof searchFormSchema>) {
+    setIsLoading(true);
+    try {
+      const results = await fetchMovies(data);
+      if (results) {
+        setMovies(results);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   const form = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(searchFormSchema),
     defaultValues: {
       Query: "",
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/search/movies?query=${data.Query}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      if (response.ok) {
-        const parsed = resultSchema.safeParse(await response.json());
-        if (parsed.success) {
-          console.log(parsed.data.results);
-        } else {
-          console.log(parsed.error);
-        }
-      } else {
-        let message = "Erro desconhecido";
-        try {
-          const parsed = apiErrorSchema.safeParse(await response.json());
-          if (parsed.success) {
-            message = parsed.data.error;
-          }
-        } catch {
-          // Non-JSON response, use default message
-        }
-        console.error("Erro:", message);
-      }
-    } catch (error) {
-      console.error("Erro:", error);
-    }
-  };
-
   return (
     <>
       <div className="flex justify-center m-8">
-        <img src={AbsoluteCinemaImg} />
+        <img src={AbsoluteCinemaImg} alt="Logo" />
       </div>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(handleSearch)}>
         <div className="flex justify-center m-8">
           <InputGroup className="max-w-md">
             <InputGroupInput
@@ -103,6 +70,22 @@ export function SearchPage() {
           </InputGroup>
         </div>
       </form>
+
+      {isLoading ? (
+        <div className="flex justify-center m-8">
+          <Spinner className="size-8" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-4 m-8">
+          {movies.map((movie) => (
+            <Poster
+              posterUrl={movie.poster_url}
+              title={movie.title}
+              releaseDate={movie.release_date}
+            ></Poster>
+          ))}
+        </div>
+      )}
     </>
   );
 }
